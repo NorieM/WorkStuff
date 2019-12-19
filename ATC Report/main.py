@@ -44,32 +44,23 @@ print(data.head())
 
 data['Date'] = data['Date'].apply(lambda tm: round_minutes(tm, 'down', 15))
 
-print(data.dtypes)
-print(data.head())
-
-data['Day'] =  data['Date'].apply(lambda dt: dt.weekday_name)
-
-print(data.dtypes)
-print(data.head())
+data['Day'] =  data['Date'].apply(lambda dt: dt.day_name())
 
 data['Period'] = data['Date'].apply(lambda dt: f'{dt.hour:02d}:{dt.minute:02d}')
 
-print(data.dtypes)
-print(data.head())
-
 data = data.drop('Date',1)
 
-print(data.dtypes)
-print(data.head())
+days = data['Day'].unique()
 
-classed = pd.pivot_table(data, values='Direction', index=['Day','Period'], columns='Class', aggfunc='count')
+print(days)
 
-#print(classed.head())
-
-
-classed.to_excel("test.xlsx")
-
-""" 
 with pd.ExcelWriter(r'test.xlsx') as writer:
-    classed.to_excel(writer, sheet_name='Data', float_format='%.2f', index=False)
- """
+
+    for rw, day in enumerate(days):
+        classed = pd.pivot_table(data[data['Day']==day], values='Direction', index=['Day','Period'], columns='Class', aggfunc='count').fillna(0)
+        classed.to_excel(writer, sheet_name='DayData', float_format='%.2f', startrow=(rw*100)+10, startcol=2)
+
+    classed = pd.pivot_table(data, values='Direction', index=['Day','Period'], columns='Class', aggfunc='count')
+    classed.to_excel(writer, sheet_name='Data', float_format='%.2f')
+
+
